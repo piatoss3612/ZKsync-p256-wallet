@@ -2,7 +2,7 @@ import { expect } from "chai";
 import { getWallet, LOCAL_RICH_WALLETS } from "../deploy/utils";
 import { ec } from "elliptic";
 import { randomBytes } from "crypto";
-import { keccak256 } from "ethers";
+import { keccak256, ZeroHash } from "ethers";
 import { Wallet } from "zksync-ethers";
 
 const P256VERIFY_CONTRACT_ADDRESS =
@@ -81,13 +81,34 @@ describe("P256Verify", function () {
     expect(result).to.equal(ONE);
   });
 
-  it("Should fail to verify the invalid input", async function () {
+  it("Should reject the invalid signature", async function () {
+    for (const param of ["r", "s"]) {
+      const result = await wallet.call({
+        to: P256VERIFY_CONTRACT_ADDRESS,
+        data: compileSignature({ [param]: ZeroHash }),
+      });
+
+      expect(result).to.equal("0x");
+    }
+  });
+
+  it("Should reject when the calldata is too short", async () => {
     const result = await wallet.call({
       to: P256VERIFY_CONTRACT_ADDRESS,
       data: "0xdeadc0de",
     });
 
     expect(result).to.equal("0x");
+  });
+
+  it("Should reject when calldata is longer than 160 bytes", async () => {
+    const result = await wallet.call({
+      to: P256VERIFY_CONTRACT_ADDRESS,
+      // The signature is valid and yet the input is too long
+      data: compileSignature({}) + "00",
+    });
+
+    expect(result).to.eq("0x");
   });
 
   it("Should reject large s/r, which are not in the group", async () => {
@@ -101,23 +122,12 @@ describe("P256Verify", function () {
     }
   });
 
-  it("Should reject when calldata is longer than 160 bytes", async () => {
-    const result = await wallet.call({
-      to: P256VERIFY_CONTRACT_ADDRESS,
-      // The signature is valid and yet the input is too long
-      data: compileSignature({}) + "00",
-    });
-
-    expect(result).to.eq("0x");
-  });
-
   it("Signature malleability is permitted", async () => {
     const newS = BigInt(P256_GROUP_ORDER) - BigInt(correctS);
     const newSHex = "0x" + padLeft(newS.toString(16), 64);
 
     const result = await wallet.call({
       to: P256VERIFY_CONTRACT_ADDRESS,
-      // The signature is valid and yet the input is too long
       data: compileSignature({ s: newSHex }),
     });
 
