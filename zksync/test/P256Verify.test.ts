@@ -123,4 +123,31 @@ describe("P256Verify", function () {
 
     expect(result).to.eq(ONE);
   });
+
+  it("secp256k1 signature should be rejected", async () => {
+    const k1 = new ec("secp256k1");
+    const keyPair = k1.genKeyPair();
+
+    const message = randomBytes(128);
+    const digest = keccak256(message);
+
+    const signature = keyPair.sign(digest.slice(2));
+
+    const r = "0x" + padLeft(signature.r.toString(16), 64);
+    const s = "0x" + padLeft(signature.s.toString(16), 64);
+
+    const publicKey = keyPair.getPublic();
+
+    const x = "0x" + padLeft(publicKey.getX().toString(16), 64);
+    const y = "0x" + padLeft(publicKey.getY().toString(16), 64);
+
+    const signatureHex = compileSignature({ digest, x, y, r, s });
+
+    const result = await wallet.call({
+      to: P256VERIFY_CONTRACT_ADDRESS,
+      data: signatureHex,
+    });
+
+    expect(result).to.equal("0x");
+  });
 });
