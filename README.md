@@ -46,7 +46,25 @@ This proposal aims to create a precompiled contract that performs signature veri
 - **Cofactor (h):** The ratio of the total number of points on the curve to the order of the subgroup `n`. The cofactor indicates how much the subgroup covers the entire curve and is generally set to 1 or 2 to enhance security.
 
 <details>
-<summary>Why parameters matter in elliptic curve cryptography</summary>
+<summary>Why parameters of secp256r1 and secp256k1 affect signature verification?</summary>
+
+Consider a simple number `x = 50`. Let's say we're performing a modular operation where we divide `x` by different primes, similar to how `secp256r1` and `secp256k1` use different prime field moduli:
+
+- If we use a prime modulus `p1 = 7`, the result of `x mod p1` is:
+
+```
+50 mod 7 = 1
+```
+
+- If we use a different prime modulus `p2 = 11`, the result of `x mod p2` is:
+
+```
+50 mod 11 = 6
+```
+
+As you can see, the same number `x` produces different results depending on the prime modulus used. In elliptic curve cryptography, this difference in modulus directly influences the result of the mathematical operations on the curve, leading to variations in the signature verification process.
+
+In the case of `secp256r1` and `secp256k1`, the different prime field moduli, curve coefficients, and base points result in distinct mathematical operations during signing and verification. Therefore, a signature generated using `secp256r1` parameters cannot be directly verified using `secp256k1` parameters, and vice versa.
 
 </details>
 
