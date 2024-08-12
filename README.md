@@ -1,115 +1,77 @@
-# ZKsync-p256-wallet
+# ZKsync P256 Wallet
 
-## Initialization
+This guide is for developers who want to create a wallet with P256 elliptic curve and ZKsync native account abstraction.
 
-```bash
-$ npm i -g zksync-cli
-$ npx zksync-cli create --project contracts --template hardhat_solidity zksync
-Using Hardhat + Solidity template
-? Private key of the wallet responsible for deploying contracts (optional) ****************************************************************
-? Package manager yarn
+## Table of Contents
 
-Setting up template in /home/piatoss/project/ZKsync-p256-wallet/zksync...
-✔ Cloned template
-✔ Environment variables set up
-✔ Dependencies installed
+- [Overview](#overview)
+- [Guide Sections](#guide-sections)
+- [Prerequisites](#prerequisites)
+- [Getting Started](#getting-started)
+- [License](#license)
+- [Contributions](#contributions)
 
-🎉 All set up! 🎉
+## Overview
 
---------------------------
+This guide will cover the following topics:
 
-Navigate to your project: cd zksync
+- [EIP-7212](https://eips.ethereum.org/EIPS/eip-7212)
+- EIP-7212 Implementation on ZKsync
+- Smart Contract Account with P256 Signature Verification
+- WebAuthn Integration
+- Frontend Integration
 
-Directory Overview:
-  - Contracts: /contracts
-  - Deployment Scripts: /deploy
+## Guide Sections
 
-Commands:
-  - Compile your contracts: yarn compile
-  - Deploy your contract: yarn deploy
-    - Tip: You can use the --network option to specify the network to deploy to.
+| Section                                                                                                                          | Description                                                                          |
+| -------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| [EIP-7212 and its implementation on ZKsync](https://github.com/piatoss3612/ZKsync-p256-wallet/tree/01.P256Verify)                | This section will cover the EIP-7212 and its implementation on ZKsync.               |
+| [Smart Contract Account with P256 Signature Verification](https://github.com/piatoss3612/ZKsync-p256-wallet/tree/02.P256Account) | This section will cover the Smart Contract Account with P256 Signature Verification. |
 
-Further Reading:
-  - Check out the README file in the project location for more details: zksync/README.md
+## Prerequisites
 
---------------------------
-```
+- [Node.js](https://nodejs.org/en/download/) (v18.x or later)
+- [Yarn](https://yarnpkg.com/getting-started/install) (v1.22.x or later)
+- [zksync-cli](https://docs.zksync.io/build/zksync-cli) (v1.8.2)
 
-## Dependencies
+## Getting Started
 
-```bash
-$ yarn add -D elliptic @types/elliptic
-```
-
-## Test
+1. Clone the repository:
 
 ```bash
-$ yarn test --grep P256
-yarn run v1.22.22
-$ hardhat test --network hardhat --grep P256
-
-
-  P256Verify
-    ✔ Should verify the valid signature
-    ✔ Should fail to verify the invalid input
-    ✔ Should reject large s/r, which are not in the group
-    ✔ Should reject when calldata is longer than 160 bytes
-    ✔ Signature malleability is permitted
-
-
-  5 passing (279ms)
-
-Done in 3.19s.
+$ git clone https://github.com/piatoss3612/ZKsync-p256-wallet.git
 ```
 
-## Account
-
-- `enableEraVMExtensions` is required to compile the contract interacting with the system contracts
-- Modify `version` to the latest version of the zkvm compiler
-
-```typescript
-const config: HardhatUserConfig = {
-  defaultNetwork: "zkSyncSepoliaTestnet",
-  networks: {
-    ...
-  },
-  zksolc: {
-    version: "latest",
-    settings: {
-      // find all available options in the official documentation
-      // https://era.zksync.io/docs/tools/hardhat/hardhat-zksync-solc.html#configuration
-      enableEraVMExtensions: true,
-    },
-  },
-  solidity: {
-    version: "0.8.24",
-  },
-};
-```
-
-### Dependencies
+2. Navigate to the project directory:
 
 ```bash
-$ yarn add -D @nomicfoundation/hardhat-chai-matchers
+$ cd ZKsync-p256-wallet
 ```
 
-### Test
+3. Checkout to the branch you want to start with:
 
 ```bash
-$ yarn test --grep P256Account
-yarn run v1.22.22
-$ hardhat test --network hardhat --grep P256Account
-
-
-  P256Account
-    ✔ Should successfully set the public key on deployment (1039ms)
-    ✔ Should successfully verify the signature (373ms)
-    ✔ Should successfully set greeting with the account (764ms)
-    ✔ Signature malleability is permitted (705ms)
-    ✔ Should reject replay attack using signature malleability (707ms)
-
-
-  5 passing (4s)
-
-Done in 7.77s.
+$ git checkout 01.P256Verify
 ```
+
+4. Install the dependencies:
+
+```bash
+$ cd zksync && yarn install
+```
+
+5. Run the tests:
+
+```bash
+$ yarn test
+```
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Contributions
+
+Since this guide has been written while studying the ZKsync protocol, there may be some mistakes or misunderstandings. Please feel free to correct me if you find any. 🙏
+
+If you have any suggestions or improvements, feel free to create an issue or a pull request. This project is open for contributions. 🚀
