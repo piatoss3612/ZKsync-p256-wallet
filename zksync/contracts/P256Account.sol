@@ -4,13 +4,11 @@ pragma solidity ^0.8.24;
 import "@matterlabs/zksync-contracts/l2/system-contracts/interfaces/IAccount.sol";
 import "@matterlabs/zksync-contracts/l2/system-contracts/libraries/TransactionHelper.sol";
 import "@openzeppelin/contracts/interfaces/IERC1271.sol";
-// Used for signature validation
-import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 // Access ZKsync system contracts for nonce validation via NONCE_HOLDER_SYSTEM_CONTRACT
 import "@matterlabs/zksync-contracts/l2/system-contracts/Constants.sol";
 // to call non-view function of system contracts
 import "@matterlabs/zksync-contracts/l2/system-contracts/libraries/SystemContractsCaller.sol";
-import {P256Verifier} from "./P256Verifier.sol";
+import {P256} from "./lib/P256.sol";
 
 contract P256Account is IAccount, IERC1271 {
     // to get transaction hash
@@ -134,7 +132,7 @@ contract P256Account is IAccount, IERC1271 {
         bytes32[2] memory _publicKey = publicKey;
 
         // Note, that we should abstain from using the require here in order to allow for fee estimation to work
-        if (!P256Verifier.verify(_hash, r, s, _publicKey[0], _publicKey[1])) {
+        if (!P256.verify(_hash, r, s, _publicKey[0], _publicKey[1])) {
             magic = bytes4(0);
         }
     }

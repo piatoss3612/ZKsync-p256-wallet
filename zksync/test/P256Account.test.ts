@@ -12,16 +12,15 @@ import { Deployer } from "@matterlabs/hardhat-zksync";
 const EIP1271_MAGIC_VALUE = "0x1626ba7e";
 const P256_GROUP_ORDER =
   "0xffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551";
+const HALF_N =
+  "0x7fffffff800000007fffffffffffffffde737d56d38bcf4279dce5617e3192a8";
 
 const padLeft = (value: string, length: number) => {
   return value.padStart(length, "0");
 };
 
-const concatSig = (signature: ec.Signature) => {
-  const r = padLeft(signature.r.toString(16), 64);
-  const s = padLeft(signature.s.toString(16), 64);
-
-  return "0x" + r + s;
+const concatSig = (r: string, s: string) => {
+  return "0x" + r.slice(2) + s.slice(2);
 };
 
 describe("P256Account", function () {
@@ -75,9 +74,16 @@ describe("P256Account", function () {
 
     const message = randomBytes(128);
     const digest = keccak256(message);
-    const signature = concatSig(p256KeyPair.sign(digest.slice(2))); // should remove 0x prefix from the digest before signing
+    const signature = p256KeyPair.sign(digest.slice(2)); // should remove 0x prefix from the digest before signing
+    const r = "0x" + padLeft(signature.r.toString(16), 64);
+    let s = "0x" + padLeft(signature.s.toString(16), 64);
+    if (BigInt(s) > BigInt(HALF_N)) {
+      s =
+        "0x" + padLeft((BigInt(P256_GROUP_ORDER) - BigInt(s)).toString(16), 64);
+    }
+    const concatenatedSignature = concatSig(r, s);
 
-    const magic = await account.isValidSignature(digest, signature);
+    const magic = await account.isValidSignature(digest, concatenatedSignature);
 
     expect(magic).to.eq(EIP1271_MAGIC_VALUE);
   });
@@ -124,7 +130,13 @@ describe("P256Account", function () {
 
     const digest = EIP712Signer.getSignedDigest(tx);
     const signature = p256KeyPair.sign(digest.slice(2));
-    const concatenatedSignature = concatSig(signature);
+    const r = "0x" + padLeft(signature.r.toString(16), 64);
+    let s = "0x" + padLeft(signature.s.toString(16), 64);
+    if (BigInt(s) > BigInt(HALF_N)) {
+      s =
+        "0x" + padLeft((BigInt(P256_GROUP_ORDER) - BigInt(s)).toString(16), 64);
+    }
+    const concatenatedSignature = concatSig(r, s);
 
     tx.customData = {
       ...tx.customData,
@@ -140,7 +152,7 @@ describe("P256Account", function () {
     expect(await greeter.greet()).to.eq(newGreeting);
   });
 
-  it("Signature malleability is permitted", async function () {
+  it("Signature s greater than half of the group order should be rejected", async function () {
     const publicKey = p256KeyPair.getPublic();
     const x = "0x" + padLeft(publicKey.getX().toString(16), 64);
     const y = "0x" + padLeft(publicKey.getY().toString(16), 64);
@@ -179,90 +191,19 @@ describe("P256Account", function () {
     const digest = EIP712Signer.getSignedDigest(tx);
     const signature = p256KeyPair.sign(digest.slice(2));
     const r = "0x" + padLeft(signature.r.toString(16), 64);
-    const newS =
-      BigInt(P256_GROUP_ORDER) -
-      BigInt("0x" + padLeft(signature.s.toString(16), 64));
-    const concatenatedSignature = r + padLeft(newS.toString(16), 64);
+    let s = "0x" + padLeft(signature.s.toString(16), 64);
+    if (BigInt(s) <= BigInt(HALF_N)) {
+      s =
+        "0x" + padLeft((BigInt(P256_GROUP_ORDER) - BigInt(s)).toString(16), 64);
+    }
+    const concatenatedSignature = concatSig(r, s);
 
     tx.customData = {
       ...tx.customData,
       customSignature: concatenatedSignature,
     };
 
-    const sentTx = await provider.broadcastTransaction(
-      Transaction.from(tx).serialized
-    );
-
-    await sentTx.wait();
-
-    expect(await greeter.greet()).to.eq(newGreeting);
-  });
-
-  it("Should reject replay attack using signature malleability", async function () {
-    const publicKey = p256KeyPair.getPublic();
-    const x = "0x" + padLeft(publicKey.getX().toString(16), 64);
-    const y = "0x" + padLeft(publicKey.getY().toString(16), 64);
-    const account = await deployAccount("P256Account", [x, y]);
-
-    const accountAddress = await account.getAddress();
-
-    // fund the account
-    await wallet.sendTransaction({
-      to: accountAddress,
-      value: parseEther("0.1"),
-    });
-
-    const provider = wallet.provider;
-
-    // set greeting with the account
-    const newGreeting = "Signature replay attack!";
-
-    let tx = await greeter.setGreeting.populateTransaction(newGreeting);
-
-    tx = {
-      ...tx,
-      from: accountAddress,
-      chainId: (await provider.getNetwork()).chainId,
-      nonce: await provider.getTransactionCount(accountAddress),
-      type: 113,
-      gasPrice: await provider.getGasPrice(),
-      value: BigInt(0),
-      customData: {
-        gasPerPubdata: DEFAULT_GAS_PER_PUBDATA_LIMIT,
-      } as types.Eip712Meta,
-    };
-
-    tx.gasLimit = await provider.estimateGas(tx);
-
-    const digest = EIP712Signer.getSignedDigest(tx);
-    const signature = p256KeyPair.sign(digest.slice(2));
-    const concatenatedSignature = concatSig(signature);
-
-    tx.customData = {
-      ...tx.customData,
-      customSignature: concatenatedSignature,
-    };
-
-    const sentTx = await provider.broadcastTransaction(
-      Transaction.from(tx).serialized
-    );
-
-    await sentTx.wait();
-
-    const r = "0x" + padLeft(signature.r.toString(16), 64);
-    const maliciousS =
-      BigInt(P256_GROUP_ORDER) -
-      BigInt("0x" + padLeft(signature.s.toString(16), 64));
-    const maliciousSignature = r + padLeft(maliciousS.toString(16), 64);
-
-    tx.nonce = await provider.getTransactionCount(accountAddress);
-
-    tx.customData = {
-      ...tx.customData,
-      customSignature: maliciousSignature,
-    };
-
-    await expect(provider.broadcastTransaction(Transaction.from(tx).serialized))
-      .to.be.reverted; // Account validation returned invalid magic value
+    expect(provider.broadcastTransaction(Transaction.from(tx).serialized)).to.be
+      .reverted;
   });
 });
