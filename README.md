@@ -1,5 +1,25 @@
 # EIP-7212 and its Implementation in ZKsync
 
+## Table of Contents
+
+- [Introduction](#introduction)
+- [Overview](#overview)
+- [EIP-7212: Precompile for secp256r1 Curve Support](#eip-7212-precompile-for-secp256r1-curve-support)
+  - [Abstract](#abstract)
+  - [secp256r1 vs. secp256k1](#secp256r1-vs-secp256k1)
+  - [Importance of secp256r1](#importance-of-secp256r1)
+  - [Integration with Account Abstraction](#integration-with-account-abstraction)
+  - [Conclusion](#conclusion)
+- [EIP-7212 Implementation in ZKsync](#eip-7212-implementation-in-zksync)
+  - [P256Verify](#p256verify)
+  - [Setting Up a Testing Environment](#setting-up-a-testing-environment)
+  - [Analyzing the Test Code](#analyzing-the-test-code)
+  - [Running the Tests](#running-the-tests)
+  - [Summary](#summary)
+- [Conclusion](#conclusion-1)
+- [Next Steps](#next-steps)
+- [Resources](#resources)
+
 ## Overview
 
 In this guide, we will cover the following topics:
@@ -10,9 +30,7 @@ In this guide, we will cover the following topics:
 
 ---
 
-## EIP-7212: Precompile for secp256r1 Curve Support
-
-[EIP-7212: Precompile for secp256r1 Curve Support](https://eips.ethereum.org/EIPS/eip-7212)
+## [EIP-7212: Precompile for secp256r1 Curve Support](https://eips.ethereum.org/EIPS/eip-7212)
 
 ### **Abstract**
 
@@ -86,7 +104,6 @@ In the case of `secp256r1` and `secp256k1`, the different prime field moduli, cu
 - The introduction of a **precompiled contract** could reduce the gas cost (3,450 gas) of secp256r1-based signature verification and enhance compatibility with a broader ecosystem.
 - This change would allow users to leverage the security features of everyday devices like smartphones to sign Ethereum transactions more securely and conveniently, greatly improving the accessibility and usability of Ethereum and giving users more confidence in using the ecosystem.
 
-<!-- 접은글 -->
 <details>
 <summary>Why Did Satoshi Nakamoto and Vitalik Buterin Choose secp256k1 Over secp256r1?</summary>
 
@@ -103,7 +120,7 @@ In the case of `secp256r1` and `secp256k1`, the different prime field moduli, cu
 
 ---
 
-## **Implementation of EIP-7212 in ZKsync**
+## **EIP-7212 Implementation in ZKsync**
 
 EIP-7212 has been rebranded as RIP-7212 (Rollup Improvement Proposal) to enhance Ethereum's rollup ecosystem and has been implemented in several rollups. This section explores the implementation of EIP-7212 in ZKsync.
 
@@ -771,7 +788,7 @@ it("secp256k1 signature should be rejected", async () => {
 });
 ```
 
-### **Running P256Verify Tests**
+### **Running the Tests**
 
 Run the test command to execute the tests on the ZKsync test node.
 
@@ -808,7 +825,11 @@ The introduction of precompiled contracts supporting the secp256r1 curve in Ethe
 
 The implementation of EIP-7212 in ZKsync demonstrates how the P256Verify precompiled contract can be used to verify signatures on the secp256r1 curve. Through a series of tests, we verified the functionality of the contract and explored various scenarios to ensure the security and reliability of the signature verification process.
 
+## Next Steps
+
+We will integrate the precompiled contract in ZKsync with the Account Abstraction of ZKsync to enable smart contract accounts to use the secp256r1 curve for signature verification.
+
 ## References
 
-[What is RIP-7212? Precompile for secp256r1 Curve Support](https://www.alchemy.com/blog/what-is-rip-7212)
-[GitHub - matter-labs/era-contracts: Smart Contract Submodule For zkSync Era](https://github.com/matter-labs/era-contracts)
+- [What is RIP-7212? Precompile for secp256r1 Curve Support](https://www.alchemy.com/blog/what-is-rip-7212)
+- [GitHub - matter-labs/era-contracts: Smart Contract Submodule For zkSync Era](https://github.com/matter-labs/era-contracts)
