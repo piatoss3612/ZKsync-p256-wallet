@@ -15,7 +15,7 @@ This guide is for developers who want to create a wallet with P256 elliptic curv
 
 This guide will cover the following topics:
 
-- [EIP-7212](https://eips.ethereum.org/EIPS/eip-7212)
+- EIP-7212: Precompile for secp256r1 Curve Support
 - EIP-7212 Implementation on ZKsync
 - Smart Contract Account with P256 Signature Verification
 - WebAuthn Integration
@@ -25,7 +25,7 @@ This guide will cover the following topics:
 
 | Section                                                                                                                          | Description                                                                          |
 | -------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| [EIP-7212 and its implementation on ZKsync](https://github.com/piatoss3612/ZKsync-p256-wallet/tree/01.P256Verify)                | This section will cover the EIP-7212 and its implementation on ZKsync.               |
+| [EIP-7212 and its implementation in ZKsync](https://github.com/piatoss3612/ZKsync-p256-wallet/tree/01.P256Verify)                | This section will cover the EIP-7212 and its implementation on ZKsync.               |
 | [Smart Contract Account with P256 Signature Verification](https://github.com/piatoss3612/ZKsync-p256-wallet/tree/02.P256Account) | This section will cover the Smart Contract Account with P256 Signature Verification. |
 
 ## Prerequisites
